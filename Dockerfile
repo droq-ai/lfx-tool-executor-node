@@ -21,14 +21,17 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 # Copy dependency files
 COPY pyproject.toml uv.lock* ./
 
-# Install dependencies using uv
-# Install dependencies directly (not as editable package)
-RUN uv pip install --system nats-py aiohttp || \
-    (uv pip compile pyproject.toml -o requirements.txt && \
-     uv pip install --system -r requirements.txt)
+# Install project dependencies
+RUN if [ -f uv.lock ]; then \
+        uv pip sync --system uv.lock; \
+    else \
+        uv pip install --system --no-cache -e .; \
+    fi
 
-# Copy source code
+# Copy source code and assets
 COPY src/ ./src/
+COPY lfx /app/lfx
+COPY components.json /app/components.json
 
 # Create non-root user for security
 RUN useradd -m -u 1000 nodeuser && chown -R nodeuser:nodeuser /app
@@ -44,6 +47,5 @@ ENV PYTHONUNBUFFERED=1
 #     CMD python -c "import sys; sys.exit(0)"
 
 # Run the node
-# Update this command to match your entry point
-CMD ["uv", "run", "python", "-m", "node.main"]
+CMD ["uv", "run", "lfx-tool-executor-node"]
 

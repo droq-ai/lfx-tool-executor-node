@@ -1,80 +1,48 @@
-# Droq Node Template
+# LFx Tool Executor Node
 
-A Python template for building Droq nodes. Works with any Python code - minimal updates needed.
+A dedicated executor node for running Langflow tools inside the Droq distributed runtime.  
+It exposes a lightweight FastAPI surface and will eventually host tool-specific logic (AgentQL, scraping helpers, etc.).
 
-## Quick Start
+## Quick start
 
 ```bash
-# 1. Clone and setup
-git clone <repository-url>
-cd droq-node-template-py
+cd nodes/lfx-tool-executor-node
 uv sync
 
-# 2. Replace src/node/main.py with your code
+# Run locally (defaults to port 8005)
+./start-local.sh
 
-# 3. Add dependencies
-uv add your-package
-
-# 4. Test locally
-PYTHONPATH=src uv run python -m node.main
-# or
-docker compose up
-
-# 5. Build
-docker build -t your-node:latest .
+# or specify a port
+./start-local.sh 8015
 ```
 
-## Documentation
+The server exposes:
 
-- [Usage Guide](docs/usage.md) - How to use the template
-- [NATS Examples](docs/nats.md) - NATS publishing and consuming examples
+- `GET /health` – readiness probe
+- `POST /api/v1/tools/run` – placeholder endpoint that will dispatch tool executions
 
-## Development
+## Configuration
 
-```bash
-# Run tests
-PYTHONPATH=src uv run pytest
+Environment variables:
 
-# Format code
-uv run black src/ tests/
-uv run ruff check src/ tests/
+| Variable | Default | Description |
+| --- | --- | --- |
+| `HOST` | `0.0.0.0` | Bind address |
+| `PORT` | `8005` | HTTP port when no CLI arg is supplied |
+| `LOG_LEVEL` | `INFO` | Python logging level |
 
-# Add dependencies
-uv add package-name
-```
+Additional secrets (API keys, service tokens) will be mounted per deployment as tools are added.
 
 ## Docker
 
 ```bash
-# Build
-docker build -t your-node:latest .
-
-# Run
-docker run --rm your-node:latest
-
-# Development (with hot reload)
-docker compose up
+docker build -t lfx-tool-executor-node:latest .
+docker run --rm -p 8005:8005 lfx-tool-executor-node:latest
 ```
 
-## Environment Variables
+## Registering the node
 
-Copy `.env.example` to `.env` and update with your values:
-
-```bash
-cp .env.example .env
-```
-
-Or set in `compose.yml` or pass to Docker:
-- `NATS_URL` - NATS server URL (default: `nats://localhost:4222`)
-- `STREAM_NAME` - JetStream name (default: `droq-stream`)
-- `NODE_NAME` - Node identifier
-- `LOG_LEVEL` - Logging level
-
-## Next Steps
-
-1. Test locally
-2. Build Docker image
-3. Register metadata in `droq-node-registry` (separate repo)
+After deploying, create/update the corresponding asset in `droq-node-registry` so workflows can discover this node and route tool components to it.
 
 ## License
 

@@ -1,0 +1,12 @@
+{
+  "AgentQL": "lfx.components.agentql.agentql_api",
+  "GoogleSearchAPIComponent": "lfx.components.tools.google_search_api",
+  "PythonCodeStructuredTool": "lfx.components.tools.python_code_structured_tool",
+  "PythonREPLToolComponent": "lfx.components.tools.python_repl",
+  "SearXNGToolComponent": "lfx.components.tools.searxng",
+  "SearchAPIComponent": "lfx.components.tools.search_api",
+  "SerpAPIComponent": "lfx.components.tools.serp_api",
+  "TavilySearchToolComponent": "lfx.components.tools.tavily_search_tool",
+  "WikipediaAPIComponent": "lfx.components.tools.wikipedia_api"
+}
+

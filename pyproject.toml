@@ -1,27 +1,52 @@
 [project]
-name = "droq-node-template"
+name = "lfx-tool-executor-node"
 version = "0.1.0"
-description = "A Python template for building Droq nodes"
+description = "Executor node responsible for running Langflow tools"
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "Apache-2.0"}
 authors = [
     {name = "Droq Team", email = "team@droq.ai"}
 ]
-keywords = ["droq", "node", "template", "workflow"]
-
-# Minimal dependencies - add what you need for your node
-# Common options (uncomment and adjust versions as needed):
-# dependencies = [
-#     "pydantic>=2.0.0",     # For configuration validation
-#     "pyyaml>=6.0",         # For YAML parsing
-#     "PyNaCl>=1.5.0",       # For encryption
-#     "requests>=2.31.0",     # For HTTP requests (sync alternative)
-# ]
+keywords = ["droq", "langflow", "tool-executor", "workflow"]
 
 dependencies = [
-    "nats-py>=2.3.0",      # For NATS messaging and JetStream
-    "aiohttp>=3.8.0",      # For HTTP/API calls
+    "fastapi>=0.115.0,<1.0.0",
+    "uvicorn[standard]>=0.34.0,<1.0.0",
+    "pydantic>=2.0.0,<3.0.0",
+    "python-dotenv>=1.0.0,<2.0.0",
+    "structlog>=25.0.0,<26.0.0",
+    "nats-py>=2.6.0,<3.0.0",
+    "httpx>=0.27.0,<1.0.0",
+    "langchain-core>=0.3.79,<0.4.0",
+    "langchain==0.3.23",
+    "langchain-anthropic==0.3.14",
+    "langchain-astradb>=0.6.1,<1.0.0",
+    "langchain-aws==0.2.33",
+    "langchain-chroma>=0.2.6,<1.0.0",
+    "langchain-cohere==0.3.3",
+    "langchain-community>=0.3.21,<1.0.0",
+    "langchain-docling>=1.1.0",
+    "langchain-elasticsearch==0.3.0",
+    "langchain-google-calendar-tools==0.0.1",
+    "langchain-google-community==2.0.3",
+    "langchain-google-genai==2.0.6",
+    "langchain-google-vertexai>=2.0.7,<3.0.0",
+    "langchain-graph-retriever==0.8.0",
+    "langchain-groq==0.2.1",
+    "langchain-huggingface==0.3.1",
+    "langchain-milvus==0.1.7",
+    "langchain-mistralai==0.2.3",
+    "langchain-mongodb==0.7.0",
+    "langchain-nvidia-ai-endpoints==0.3.8",
+    "langchain-ollama==0.2.1",
+    "langchain-openai>=0.2.12,<1.0.0",
+    "langchain-pinecone>=0.2.8,<1.0.0",
+    "langchain-sambanova==0.1.0",
+    "langchain-unstructured==0.1.5",
+    "langchain-ibm>=0.3.8",
+    "nanoid>=2.0.0",
+    "lfx"
 ]
 
 [project.optional-dependencies]
@@ -34,14 +59,18 @@ dev = [
 ]
 
 [project.scripts]
-node = "node.main:main"
+lfx-tool-executor-node = "tool_executor.main:main"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[tool.hatchling.build.targets.wheel]
-packages = ["src/node"]
+[tool.hatch.build.targets.wheel]
+packages = ["src/tool_executor"]
+include = ["src/tool_executor/**/*", "lfx/**/*", "components.json"]
+
+[tool.uv.sources]
+lfx = { path = "lfx" }
 
 [tool.black]
 line-length = 100
