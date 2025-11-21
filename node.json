@@ -1,0 +1,230 @@
+{
+  "did": "did:droq:node:lfx-tool-executor-v1",
+  "publicKey": "A7UIRQ8z+IhNueLbHHQmfSFb/0wAk/vLXq3TxKEVSDM=",
+  "privateKey": "FYkf035Qdpb9plDB4i8xcpYLB63PKJGV42D3kRg5eWU=",
+  "node_type": "tool-executor",
+  "name": "LFX Tool Executor Node",
+  "description": "A dedicated executor node for running Langflow tools inside the Droq distributed runtime. Exposes a lightweight FastAPI surface and hosts tool-specific logic for 200+ components including AI/ML providers, vector databases, search APIs, and productivity tools.",
+  "version": "1.0.0",
+  "streams": {
+    "subscribe": [],
+    "publish": []
+  },
+  "permissions": {
+    "read": [
+      "droq.components.*"
+    ],
+    "write": [
+      "droq.execution.results",
+      "droq.tool.outputs"
+    ]
+  },
+  "dependencies": {
+    "external": [
+      {
+        "type": "nats",
+        "cluster": "local",
+        "stream": "droq.tool.execution"
+      },
+      {
+        "type": "did-resolver",
+        "endpoint": "https://did.registry.droq.ai"
+      },
+      {
+        "type": "http-api",
+        "endpoint": "http://localhost:8005"
+      }
+    ]
+  },
+  "config": {
+    "description": "LFX Tool Executor Node for running Langflow components in Droq workflows",
+    "docker_image": "droq/lfx-tool-executor:v1",
+    "host": "0.0.0.0",
+    "port": 8005,
+    "log_level": "INFO",
+    "locality": "local",
+    "remote_endpoint": "nats://droq-nats-server:4222",
+    "api_endpoints": {
+      "health": "/health",
+      "execute_tool": "/api/v1/tools/run"
+    },
+    "component_categories": [
+      "input_output",
+      "data",
+      "models",
+      "processing",
+      "logic",
+      "agents",
+      "embeddings",
+      "vectorstores",
+      "toolkits",
+      "tools",
+      "documentloaders",
+      "textsplitters",
+      "output_parsers"
+    ]
+  },
+  "source_code": {
+    "path": "./src",
+    "type": "local",
+    "docker": {
+      "type": "file",
+      "dockerfile": "./Dockerfile"
+    }
+  },
+  "components": {
+    "core_infrastructure": {
+      "input_output": {
+        "agentql.agentql_api": "Extracts structured data from a web page using an AgentQL query or a Natural Language description.",
+        "input_output.chat": "Get chat inputs from the Playground.",
+        "input_output.text": "Get user text inputs.",
+        "input_output.chat_output": "Chat output to the Playground.",
+        "input_output.text_output": "Display text outputs."
+      },
+      "data": {
+        "data.api_request": "Make HTTP requests using URL or cURL commands.",
+        "data.csv_to_data": "Load a CSV file, CSV from a file path, or a valid CSV string and convert it to a list of Data",
+        "data.file": "Loads content from one or more files.",
+        "data.json_to_data": "Convert a JSON file, JSON from a file path, or a JSON string to a Data object or a list of Data objects",
+        "data.save_file": "Save data to local file, AWS S3, or Google Drive in the selected format.",
+        "data.web_search": "Search the web for information.",
+        "data.url": "Load data from a URL."
+      },
+      "models": {
+        "models.language_model": "Runs a language model given a specified provider.",
+        "models.embedding_model": "Generate embeddings using a specified provider."
+      },
+      "processing": {
+        "processing.alter_metadata": "Adds/Removes Metadata Dictionary on inputs",
+        "processing.batch_run": "Runs an LLM on each row of a DataFrame column. If no column is specified, all columns are used.",
+        "processing.combine_text": "Combine text inputs into a single output.",
+        "processing.create_data": "Create data objects from various inputs.",
+        "processing.data_operations": "Perform operations on data objects.",
+        "processing.filter_data": "Filter data based on conditions.",
+        "processing.merge_data": "Merge multiple data sources.",
+        "processing.parse_data": "Parse data from various formats.",
+        "processing.prompt": "Generate prompts for language models.",
+        "processing.split_text": "Split text into multiple chunks."
+      },
+      "logic": {
+        "logic.conditional_router": "Routes an input message to a corresponding output based on text comparison.",
+        "logic.loop": "Iterates over a list of Data objects, outputting one item at a time and aggregating results from loop inputs.",
+        "logic.run_flow": "Execute sub-flows within a main flow.",
+        "logic.sub_flow": "Create and manage sub-flows."
+      }
+    },
+    "ai_providers": {
+      "major_providers": {
+        "openai.openai": "Generate text using OpenAI models.",
+        "anthropic.anthropic": "Generate text using Anthropic models.",
+        "google.google_generative_ai": "Generate text using Google's Gemini models.",
+        "amazon.amazon_bedrock_model": "Generate text using Amazon Bedrock LLMs with the legacy ChatBedrock API. This component is deprecated.",
+        "azure.azure_openai": "Generate text using Azure OpenAI models.",
+        "cohere.cohere_models": "Generate text using Cohere models.",
+        "mistral.mistral": "Generate text using Mistral models.",
+        "groq.groq": "Generate text using Groq models.",
+        "perplexity.perplexity": "Generate text using Perplexity models."
+      },
+      "embedding_providers": {
+        "openai.openai_embeddings": "Generate embeddings using OpenAI models.",
+        "amazon.amazon_bedrock_embedding": "Generate embeddings using Amazon Bedrock models.",
+        "azure.azure_openai_embeddings": "Generate embeddings using Azure OpenAI models.",
+        "google.google_generative_ai_embeddings": "Generate embeddings using Google's Gemini models."
+      }
+    },
+    "tool_integrations": {
+      "composio": {
+        "composio.composio_api": "Use Composio toolset to run actions with your agent",
+        "composio.github_composio": "GitHub integration through Composio",
+        "composio.slack_composio": "Slack integration through Composio",
+        "composio.gmail_composio": "Gmail integration through Composio",
+        "composio.googlecalendar_composio": "Google Calendar integration through Composio"
+      },
+      "vector_databases": {
+        "FAISS.faiss": "FAISS Vector Store with search capabilities",
+        "chroma.chroma": "Chroma vector database integration",
+        "pinecone.pinecone": "Pinecone vector database integration",
+        "qdrant.qdrant": "Qdrant vector database integration",
+        "weaviate.weaviate": "Weaviate vector database integration"
+      },
+      "search_apis": {
+        "google.google_search_api_core": "Call Google Search API and return results as a DataFrame.",
+        "bing.bing_search_api": "Search using Bing API",
+        "duckduckgo.duck_duck_go_search_run": "Search using DuckDuckGo",
+        "serpapi.serpapi": "Search using SerpAPI",
+        "searchapi.searchapi": "Search using SearchAPI",
+        "arxiv.arxiv": "Search and retrieve papers from ArXiv",
+        "wikipedia.wikipedia": "Search and retrieve content from Wikipedia"
+      }
+    },
+    "data_storage": {
+      "cloud_storage": {
+        "amazon.s3_bucket_uploader": "Upload files to Amazon S3"
+      },
+      "databases": {
+        "cassandra.cassandra": "Cassandra database integration",
+        "mongodb.mongodb_atlas": "MongoDB Atlas integration",
+        "clickhouse.clickhouse": "ClickHouse database integration",
+        "supabase.supabase": "Supabase database integration",
+        "couchbase.couchbase": "Couchbase database integration"
+      }
+    },
+    "specialized_ai": {
+      "agent_frameworks": {
+        "agents.agent": "Define the agent's instructions, then enter a task to complete using tools.",
+        "agents.cuga_agent": "CUGA agent implementation",
+        "agents.mcp_component": "MCP (Model Context Protocol) component"
+      },
+      "memory_context": {
+        "mem0.mem0_chat_memory": "Mem0 chat memory integration",
+        "helpers.memory": "Memory management helpers"
+      },
+      "multimodal_ai": {
+        "assemblyai.assemblyai_start_transcript": "Start audio transcription with AssemblyAI",
+        "assemblyai.assemblyai_poll_transcript": "Poll transcription status with AssemblyAI",
+        "needle.needle": "Needle AI integration"
+      }
+    },
+    "utilities": {
+      "development_tools": {
+        "git.git": "Git integration",
+        "helpers.calculator_core": "Calculator utility",
+        "helpers.current_date": "Current date utility",
+        "helpers.id_generator": "ID generation utility"
+      },
+      "data_transformation": {
+        "processing.dataframe_operations": "Perform operations on DataFrames",
+        "processing.dataframe_to_toolset": "Convert DataFrames to toolsets"
+      }
+    }
+  },
+  "capabilities": [
+    "ai_model_execution",
+    "data_processing",
+    "vector_search",
+    "web_scraping",
+    "api_integration",
+    "document_processing",
+    "workflow_orchestration",
+    "agent_execution",
+    "memory_management",
+    "tool_composition"
+  ],
+  "supported_providers": [
+    "openai",
+    "anthropic",
+    "google",
+    "azure",
+    "aws",
+    "cohere",
+    "mistral",
+    "groq",
+    "perplexity"
+  ],
+  "endpoint_mappings": {
+    "health_check": "/health",
+    "tool_execution": "/api/v1/tools/run",
+    "component_list": "/api/v1/components",
+    "status": "/api/v1/status"
+  }
+}
