@@ -7,6 +7,6 @@
   "SearchAPIComponent": "lfx.components.tools.search_api",
   "SerpAPIComponent": "lfx.components.tools.serp_api",
   "TavilySearchToolComponent": "lfx.components.tools.tavily_search_tool",
-  "WikipediaAPIComponent": "lfx.components.tools.wikipedia_api"
+  "WikipediaAPIComponent": "lfx.components.tools.wikipedia_api",
+  "SaveToFileComponent": "lfx.components.data.save_file"
 }
-

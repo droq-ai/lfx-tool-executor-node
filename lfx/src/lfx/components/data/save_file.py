@@ -318,14 +318,87 @@ class SaveToFileComponent(Component):
 
     def _save_dataframe(self, dataframe: DataFrame, path: Path, fmt: str) -> str:
         """Save a DataFrame to the specified file format."""
+        file_exists = path.exists()
+        print(f"[SaveFile] 💾 Writing DataFrame to {fmt} file: exists={file_exists}, mode={'append rows' if file_exists else 'create'}", flush=True)
+        print(f"[SaveFile] 💾 DataFrame shape: {dataframe.shape}", flush=True)
+        
         if fmt == "csv":
-            dataframe.to_csv(path, index=False)
+            if file_exists:
+                try:
+                    existing_df = pd.read_csv(path)
+                    print(f"[SaveFile] 🔄 Read existing CSV with {len(existing_df)} row(s)", flush=True)
+                    combined_df = pd.concat([existing_df, dataframe], ignore_index=True)
+                    combined_df.to_csv(path, index=False)
+                    print(f"[SaveFile] 💾 ✅ Appended rows to CSV (now {len(combined_df)} rows): {path}", flush=True)
+                except Exception as e:
+                    print(f"[SaveFile] ⚠️ Error reading existing CSV: {e}, creating new file", flush=True)
+                    dataframe.to_csv(path, index=False)
+                    print(f"[SaveFile] 💾 ✅ Created new CSV file: {path}", flush=True)
+            else:
+                dataframe.to_csv(path, index=False)
+                print(f"[SaveFile] 💾 ✅ Created new CSV file: {path}", flush=True)
         elif fmt == "excel":
-            dataframe.to_excel(path, index=False, engine="openpyxl")
+            if file_exists:
+                try:
+                    existing_df = pd.read_excel(path, engine="openpyxl")
+                    print(f"[SaveFile] 🔄 Read existing Excel with {len(existing_df)} row(s)", flush=True)
+                    combined_df = pd.concat([existing_df, dataframe], ignore_index=True)
+                    combined_df.to_excel(path, index=False, engine="openpyxl")
+                    print(f"[SaveFile] 💾 ✅ Appended rows to Excel (now {len(combined_df)} rows): {path}", flush=True)
+                except Exception as e:
+                    print(f"[SaveFile] ⚠️ Error reading existing Excel: {e}, creating new file", flush=True)
+                    dataframe.to_excel(path, index=False, engine="openpyxl")
+                    print(f"[SaveFile] 💾 ✅ Created new Excel file: {path}", flush=True)
+            else:
+                dataframe.to_excel(path, index=False, engine="openpyxl")
+                print(f"[SaveFile] 💾 ✅ Created new Excel file: {path}", flush=True)
         elif fmt == "json":
-            dataframe.to_json(path, orient="records", indent=2)
+            if file_exists:
+                try:
+                    with path.open("r", encoding="utf-8") as f:
+                        existing_content = f.read().strip()
+                    
+                    json_array = []
+                    if existing_content.startswith("["):
+                        json_array = json.loads(existing_content)
+                        print(f"[SaveFile] 🔄 Read existing JSON array with {len(json_array)} item(s)", flush=True)
+                    elif existing_content.startswith("{"):
+                        json_array = [json.loads(existing_content)]
+                        print(f"[SaveFile] 🔄 Converted single JSON object to array", flush=True)
+                    
+                    # Convert DataFrame to list of dicts and append
+                    df_records = dataframe.to_dict(orient="records")
+                    json_array.extend(df_records)
+                    
+                    with path.open("w", encoding="utf-8") as f:
+                        f.write(json.dumps(json_array, indent=2, ensure_ascii=False))
+                    print(f"[SaveFile] 💾 ✅ Appended DataFrame rows to JSON array (now {len(json_array)} items): {path}", flush=True)
+                except Exception as e:
+                    print(f"[SaveFile] ⚠️ Error reading existing JSON: {e}, creating new file", flush=True)
+                    dataframe.to_json(path, orient="records", indent=2)
+                    print(f"[SaveFile] 💾 ✅ Created new JSON file: {path}", flush=True)
+            else:
+                dataframe.to_json(path, orient="records", indent=2)
+                print(f"[SaveFile] 💾 ✅ Created new JSON file: {path}", flush=True)
         elif fmt == "markdown":
-            path.write_text(dataframe.to_markdown(index=False), encoding="utf-8")
+            if file_exists:
+                try:
+                    with path.open("r", encoding="utf-8") as f:
+                        existing_content = f.read()
+                    
+                    new_markdown = dataframe.to_markdown(index=False)
+                    with path.open("a", encoding="utf-8") as f:
+                        if existing_content and not existing_content.endswith("\n"):
+                            f.write("\n")
+                        f.write(f"\n{new_markdown}\n")
+                    print(f"[SaveFile] 💾 ✅ Appended markdown table to existing file: {path}", flush=True)
+                except Exception as e:
+                    print(f"[SaveFile] ⚠️ Error reading existing markdown: {e}, creating new file", flush=True)
+                    path.write_text(dataframe.to_markdown(index=False), encoding="utf-8")
+                    print(f"[SaveFile] 💾 ✅ Created new markdown file: {path}", flush=True)
+            else:
+                path.write_text(dataframe.to_markdown(index=False), encoding="utf-8")
+                print(f"[SaveFile] 💾 ✅ Created new markdown file: {path}", flush=True)
         else:
             msg = f"Unsupported DataFrame format: {fmt}"
             raise ValueError(msg)
@@ -333,16 +406,177 @@ class SaveToFileComponent(Component):
 
     def _save_data(self, data: Data, path: Path, fmt: str) -> str:
         """Save a Data object to the specified file format."""
+        print(f"[SaveFile] 💾 _save_data called: format={fmt}, path={path}", flush=True)
+        
+        # CRITICAL: Skip if content is empty (don't fail, just skip writing)
+        # Check if Data object has meaningful content
+        text_content = getattr(data, "text", None) or (data.data.get("text") if isinstance(data.data, dict) else None)
+        data_dict = data.data if isinstance(data.data, dict) else {}
+        
+        print(f"[SaveFile] 💾 Data.text: {repr(text_content)[:200] if text_content else 'None'}", flush=True)
+        print(f"[SaveFile] 💾 Data.data: {repr(data_dict)[:200] if data_dict else 'None'}", flush=True)
+        
+        # Check if text is empty or only whitespace
+        is_text_empty = not text_content or (isinstance(text_content, str) and text_content.strip() == "")
+        
+        # Check if data dict is empty or only contains empty values
+        is_data_empty = not data_dict or all(
+            not v or (isinstance(v, str) and v.strip() == "") 
+            for v in data_dict.values() 
+            if v is not None
+        )
+        
+        if is_text_empty and is_data_empty:
+            print(f"[SaveFile] ⚠️ SKIP: Data content is empty, skipping write. data.data={repr(data.data)}, text={repr(text_content)}", flush=True)
+            logger.info(f"[SaveFile] Skipping write to '{path}' - content is empty")
+            return f"Skipped writing empty content to '{path}'"
+        
+        file_exists = path.exists()
+        print(f"[SaveFile] 💾 Writing Data to {fmt} file: exists={file_exists}", flush=True)
+        
         if fmt == "csv":
-            pd.DataFrame(data.data).to_csv(path, index=False)
+            file_exists = path.exists()
+            new_df = pd.DataFrame([data.data])  # Convert single data dict to DataFrame
+            print(f"[SaveFile] 💾 Writing Data to csv file: exists={file_exists}, mode={'append rows' if file_exists else 'create'}", flush=True)
+            print(f"[SaveFile] 💾 CSV data to add: {data.data}", flush=True)
+            
+            if file_exists:
+                try:
+                    # Read existing CSV
+                    existing_df = pd.read_csv(path)
+                    print(f"[SaveFile] 🔄 Read existing CSV with {len(existing_df)} row(s)", flush=True)
+                    # Append new row(s)
+                    combined_df = pd.concat([existing_df, new_df], ignore_index=True)
+                    combined_df.to_csv(path, index=False)
+                    print(f"[SaveFile] 💾 ✅ Appended row to CSV (now {len(combined_df)} rows): {path}", flush=True)
+                except Exception as e:
+                    print(f"[SaveFile] ⚠️ Error reading existing CSV: {e}, creating new file", flush=True)
+                    # If reading fails, create new file
+                    new_df.to_csv(path, index=False)
+                    print(f"[SaveFile] 💾 ✅ Created new CSV file: {path}", flush=True)
+            else:
+                new_df.to_csv(path, index=False)
+                print(f"[SaveFile] 💾 ✅ Created new CSV file: {path}", flush=True)
         elif fmt == "excel":
-            pd.DataFrame(data.data).to_excel(path, index=False, engine="openpyxl")
+            file_exists = path.exists()
+            new_df = pd.DataFrame([data.data])  # Convert single data dict to DataFrame
+            print(f"[SaveFile] 💾 Writing Data to excel file: exists={file_exists}, mode={'append rows' if file_exists else 'create'}", flush=True)
+            print(f"[SaveFile] 💾 Excel data to add: {data.data}", flush=True)
+            
+            if file_exists:
+                try:
+                    # Read existing Excel file
+                    existing_df = pd.read_excel(path, engine="openpyxl")
+                    print(f"[SaveFile] 🔄 Read existing Excel with {len(existing_df)} row(s)", flush=True)
+                    # Append new row(s)
+                    combined_df = pd.concat([existing_df, new_df], ignore_index=True)
+                    combined_df.to_excel(path, index=False, engine="openpyxl")
+                    print(f"[SaveFile] 💾 ✅ Appended row to Excel (now {len(combined_df)} rows): {path}", flush=True)
+                except Exception as e:
+                    print(f"[SaveFile] ⚠️ Error reading existing Excel: {e}, creating new file", flush=True)
+                    # If reading fails, create new file
+                    new_df.to_excel(path, index=False, engine="openpyxl")
+                    print(f"[SaveFile] 💾 ✅ Created new Excel file: {path}", flush=True)
+            else:
+                new_df.to_excel(path, index=False, engine="openpyxl")
+                print(f"[SaveFile] 💾 ✅ Created new Excel file: {path}", flush=True)
         elif fmt == "json":
-            path.write_text(
-                orjson.dumps(jsonable_encoder(data.data), option=orjson.OPT_INDENT_2).decode("utf-8"), encoding="utf-8"
-            )
+            file_exists = path.exists()
+            # For JSON, use JSON array format for valid JSON file
+            new_item = jsonable_encoder(data.data)
+            print(f"[SaveFile] 💾 Writing Data to json file: exists={file_exists}, mode={'append to array' if file_exists else 'create array'}", flush=True)
+            print(f"[SaveFile] 💾 JSON content to add: {json.dumps(new_item)[:200]}", flush=True)
+            
+            if file_exists:
+                # Read existing file and parse as JSON array
+                try:
+                    with path.open("r", encoding="utf-8") as f:
+                        existing_content = f.read().strip()
+                    
+                    json_array = []
+                    
+                    # Try to parse as JSON array
+                    if existing_content.startswith("["):
+                        try:
+                            json_array = json.loads(existing_content)
+                            print(f"[SaveFile] 🔄 Read existing JSON array with {len(json_array)} item(s)", flush=True)
+                        except json.JSONDecodeError as e:
+                            print(f"[SaveFile] ⚠️ Error parsing JSON array: {e}, creating new array", flush=True)
+                            json_array = []
+                    
+                    # Try to parse as single JSON object (convert to array)
+                    elif existing_content.startswith("{"):
+                        try:
+                            obj = json.loads(existing_content)
+                            json_array = [obj]
+                            print(f"[SaveFile] 🔄 Converted single JSON object to array", flush=True)
+                        except json.JSONDecodeError as e:
+                            print(f"[SaveFile] ⚠️ Error parsing JSON object: {e}, creating new array", flush=True)
+                            json_array = []
+                    
+                    # Try to parse as JSONL (one object per line)
+                    else:
+                        lines = existing_content.split("\n")
+                        for line in lines:
+                            line = line.strip()
+                            if not line:
+                                continue
+                            try:
+                                obj = json.loads(line)
+                                json_array.append(obj)
+                            except json.JSONDecodeError:
+                                pass
+                        if json_array:
+                            print(f"[SaveFile] 🔄 Converted JSONL format to array with {len(json_array)} item(s)", flush=True)
+                    
+                    # Add new item to array
+                    json_array.append(new_item)
+                    
+                    # Write back as formatted JSON array
+                    with path.open("w", encoding="utf-8") as f:
+                        f.write(json.dumps(json_array, indent=2, ensure_ascii=False))
+                    print(f"[SaveFile] 💾 ✅ Appended to JSON array (now {len(json_array)} items): {path}", flush=True)
+                
+                except Exception as e:
+                    print(f"[SaveFile] ⚠️ Error reading existing file: {e}, creating new array", flush=True)
+                    # Create new array with the item
+                    json_array = [new_item]
+                    with path.open("w", encoding="utf-8") as f:
+                        f.write(json.dumps(json_array, indent=2, ensure_ascii=False))
+                    print(f"[SaveFile] 💾 ✅ Created new JSON array file: {path}", flush=True)
+            else:
+                # Create new file with JSON array format
+                json_array = [new_item]
+                with path.open("w", encoding="utf-8") as f:
+                    f.write(json.dumps(json_array, indent=2, ensure_ascii=False))
+                print(f"[SaveFile] 💾 ✅ Created new JSON array file with Data: {path}", flush=True)
         elif fmt == "markdown":
-            path.write_text(pd.DataFrame(data.data).to_markdown(index=False), encoding="utf-8")
+            file_exists = path.exists()
+            new_df = pd.DataFrame([data.data])  # Convert single data dict to DataFrame
+            new_markdown = new_df.to_markdown(index=False)
+            print(f"[SaveFile] 💾 Writing Data to markdown file: exists={file_exists}, mode={'append' if file_exists else 'create'}", flush=True)
+            print(f"[SaveFile] 💾 Markdown data to add: {data.data}", flush=True)
+            
+            if file_exists:
+                # Read existing markdown and append new table
+                try:
+                    with path.open("r", encoding="utf-8") as f:
+                        existing_content = f.read()
+                    
+                    # Append new markdown table with separator
+                    with path.open("a", encoding="utf-8") as f:
+                        # Ensure file ends with newline
+                        if existing_content and not existing_content.endswith("\n"):
+                            f.write("\n")
+                        f.write(f"\n{new_markdown}\n")
+                    print(f"[SaveFile] 💾 ✅ Appended markdown table to existing file: {path}", flush=True)
+                except Exception as e:
+                    print(f"[SaveFile] ⚠️ Error reading existing markdown: {e}, creating new file", flush=True)
+                    path.write_text(f"{new_markdown}\n", encoding="utf-8")
+                    print(f"[SaveFile] 💾 ✅ Created new markdown file: {path}", flush=True)
+            else:
+                path.write_text(f"{new_markdown}\n", encoding="utf-8")
+                print(f"[SaveFile] 💾 ✅ Created new markdown file: {path}", flush=True)
         else:
             msg = f"Unsupported Data format: {fmt}"
             raise ValueError(msg)
@@ -350,24 +584,145 @@ class SaveToFileComponent(Component):
 
     async def _save_message(self, message: Message, path: Path, fmt: str) -> str:
         """Save a Message to the specified file format, handling async iterators."""
+        print(f"[SaveFile] 💾 _save_message called: format={fmt}, path={path}", flush=True)
+        print(f"[SaveFile] 💾 message.text type: {type(message.text).__name__}, value={repr(message.text)[:200]}", flush=True)
+        
         content = ""
         if message.text is None:
             content = ""
+            print(f"[SaveFile] 💾 message.text is None, content=''", flush=True)
         elif isinstance(message.text, AsyncIterator):
+            print(f"[SaveFile] 💾 message.text is AsyncIterator, extracting...", flush=True)
             async for item in message.text:
                 content += str(item) + " "
             content = content.strip()
+            print(f"[SaveFile] 💾 Extracted from AsyncIterator: length={len(content)}, content={repr(content)[:200]}", flush=True)
         elif isinstance(message.text, Iterator):
+            print(f"[SaveFile] 💾 message.text is Iterator, extracting...", flush=True)
             content = " ".join(str(item) for item in message.text)
+            print(f"[SaveFile] 💾 Extracted from Iterator: length={len(content)}, content={repr(content)[:200]}", flush=True)
         else:
             content = str(message.text)
+            print(f"[SaveFile] 💾 Converted to string: length={len(content)}, content={repr(content)[:200]}", flush=True)
+
+        # CRITICAL: Skip if content is empty (don't fail, just skip writing)
+        # This prevents writing empty files which indicates a problem in the workflow
+        print(f"[SaveFile] 💾 Final content: type={type(content).__name__}, length={len(content) if isinstance(content, str) else 'N/A'}, value={repr(content)[:200]}", flush=True)
+        if not content or (isinstance(content, str) and content.strip() == ""):
+            print(f"[SaveFile] ⚠️ SKIP: Content is empty, skipping write. message.text={repr(message.text)}, content={repr(content)}", flush=True)
+            logger.info(f"[SaveFile] Skipping write to '{path}' - content is empty")
+            return f"Skipped writing empty content to '{path}'"
 
         if fmt == "txt":
-            path.write_text(content, encoding="utf-8")
+            # Append mode: if file exists, append with newline; otherwise create new
+            file_exists = path.exists()
+            print(f"[SaveFile] 💾 Writing to txt file: exists={file_exists}, mode={'append' if file_exists else 'create'}", flush=True)
+            if file_exists:
+                # Ensure file ends with newline before appending
+                with path.open("r+", encoding="utf-8") as f:
+                    f.seek(0, 2)  # Go to end
+                    file_size = f.tell()
+                    if file_size > 0:
+                        f.seek(-1, 2)  # Go back one byte
+                        last_char = f.read(1)
+                        if last_char != "\n":
+                            f.write("\n")  # Add newline if missing
+                    # Append new content
+                    f.write(f"{content}\n")
+                print(f"[SaveFile] 💾 ✅ Appended content to existing file: {path}", flush=True)
+            else:
+                path.write_text(f"{content}\n", encoding="utf-8")
+                print(f"[SaveFile] 💾 ✅ Created new file with content: {path}", flush=True)
         elif fmt == "json":
-            path.write_text(json.dumps({"message": content}, indent=2), encoding="utf-8")
+            # For JSON, use JSON array format for valid JSON file
+            file_exists = path.exists()
+            new_item = {"message": content}
+            print(f"[SaveFile] 💾 Writing to json file: exists={file_exists}, mode={'append to array' if file_exists else 'create array'}", flush=True)
+            print(f"[SaveFile] 💾 JSON content to add: {json.dumps(new_item)[:200]}", flush=True)
+            
+            if file_exists:
+                # Read existing file and parse as JSON array
+                try:
+                    with path.open("r", encoding="utf-8") as f:
+                        existing_content = f.read().strip()
+                    
+                    json_array = []
+                    
+                    # Try to parse as JSON array
+                    if existing_content.startswith("["):
+                        try:
+                            json_array = json.loads(existing_content)
+                            print(f"[SaveFile] 🔄 Read existing JSON array with {len(json_array)} item(s)", flush=True)
+                        except json.JSONDecodeError as e:
+                            print(f"[SaveFile] ⚠️ Error parsing JSON array: {e}, creating new array", flush=True)
+                            json_array = []
+                    
+                    # Try to parse as single JSON object (convert to array)
+                    elif existing_content.startswith("{"):
+                        try:
+                            obj = json.loads(existing_content)
+                            json_array = [obj]
+                            print(f"[SaveFile] 🔄 Converted single JSON object to array", flush=True)
+                        except json.JSONDecodeError:
+                            print(f"[SaveFile] ⚠️ Error parsing JSON object: {e}, creating new array", flush=True)
+                            json_array = []
+                    
+                    # Try to parse as JSONL (one object per line)
+                    else:
+                        lines = existing_content.split("\n")
+                        for line in lines:
+                            line = line.strip()
+                            if not line:
+                                continue
+                            try:
+                                obj = json.loads(line)
+                                json_array.append(obj)
+                            except json.JSONDecodeError:
+                                pass
+                        if json_array:
+                            print(f"[SaveFile] 🔄 Converted JSONL format to array with {len(json_array)} item(s)", flush=True)
+                    
+                    # Add new item to array
+                    json_array.append(new_item)
+                    
+                    # Write back as formatted JSON array
+                    with path.open("w", encoding="utf-8") as f:
+                        f.write(json.dumps(json_array, indent=2, ensure_ascii=False))
+                    print(f"[SaveFile] 💾 ✅ Appended to JSON array (now {len(json_array)} items): {path}", flush=True)
+                
+                except Exception as e:
+                    print(f"[SaveFile] ⚠️ Error reading existing file: {e}, creating new array", flush=True)
+                    # Create new array with the item
+                    json_array = [new_item]
+                    with path.open("w", encoding="utf-8") as f:
+                        f.write(json.dumps(json_array, indent=2, ensure_ascii=False))
+                    print(f"[SaveFile] 💾 ✅ Created new JSON array file: {path}", flush=True)
+            else:
+                # Create new file with JSON array format
+                json_array = [new_item]
+                with path.open("w", encoding="utf-8") as f:
+                    f.write(json.dumps(json_array, indent=2, ensure_ascii=False))
+                print(f"[SaveFile] 💾 ✅ Created new JSON array file with content: {path}", flush=True)
         elif fmt == "markdown":
-            path.write_text(f"**Message:**\n\n{content}", encoding="utf-8")
+            # Append mode for markdown
+            file_exists = path.exists()
+            print(f"[SaveFile] 💾 Writing to markdown file: exists={file_exists}, mode={'append' if file_exists else 'create'}", flush=True)
+            if file_exists:
+                # Ensure file ends with newline before appending
+                with path.open("r+", encoding="utf-8") as f:
+                    f.seek(0, 2)  # Go to end
+                    file_size = f.tell()
+                    if file_size > 0:
+                        f.seek(-1, 2)  # Go back one byte
+                        last_char = f.read(1)
+                        if last_char != "\n":
+                            f.write("\n")  # Add newline if missing
+                    # Append new content with separator
+                    f.write(f"\n**Message:**\n\n{content}\n")
+                print(f"[SaveFile] 💾 ✅ Appended markdown content to existing file: {path}", flush=True)
+            else:
+                path.write_text(f"**Message:**\n\n{content}\n", encoding="utf-8")
+                print(f"[SaveFile] 💾 ✅ Created new markdown file with content: {path}", flush=True)
         else:
             msg = f"Unsupported Message format: {fmt}"
             raise ValueError(msg)
@@ -395,13 +750,33 @@ class SaveToFileComponent(Component):
     async def _save_to_local(self) -> Message:
         """Save file to local storage (original functionality)."""
         file_format = self._get_file_format_for_location("Local")
+        input_type = self._get_input_type()
+
+        # Log what we're receiving
+        print(f"[SaveFile] 📥 RECEIVED INPUT: type={input_type}, format={file_format}, file_name={self.file_name}", flush=True)
+        print(f"[SaveFile] 📥 Input object: {type(self.input).__name__}", flush=True)
+        
+        # Log the actual content based on type
+        if input_type == "Message":
+            msg_text = getattr(self.input, "text", None)
+            msg_data = getattr(self.input, "data", None)
+            print(f"[SaveFile] 📥 Message.text: type={type(msg_text).__name__}, value={repr(msg_text)[:200]}", flush=True)
+            print(f"[SaveFile] 📥 Message.data: {repr(msg_data)[:200] if msg_data else 'None'}", flush=True)
+        elif input_type == "Data":
+            data_text = getattr(self.input, "text", None)
+            data_dict = getattr(self.input, "data", None)
+            print(f"[SaveFile] 📥 Data.text: {repr(data_text)[:200] if data_text else 'None'}", flush=True)
+            print(f"[SaveFile] 📥 Data.data: {repr(data_dict)[:200] if data_dict else 'None'}", flush=True)
+        elif input_type == "DataFrame":
+            print(f"[SaveFile] 📥 DataFrame shape: {self.input.shape if hasattr(self.input, 'shape') else 'N/A'}", flush=True)
+            print(f"[SaveFile] 📥 DataFrame preview: {str(self.input.head())[:200] if hasattr(self.input, 'head') else 'N/A'}", flush=True)
 
         # Validate file format based on input type
         allowed_formats = (
-            self.LOCAL_MESSAGE_FORMAT_CHOICES if self._get_input_type() == "Message" else self.LOCAL_DATA_FORMAT_CHOICES
+            self.LOCAL_MESSAGE_FORMAT_CHOICES if input_type == "Message" else self.LOCAL_DATA_FORMAT_CHOICES
         )
         if file_format not in allowed_formats:
-            msg = f"Invalid file format '{file_format}' for {self._get_input_type()}. Allowed: {allowed_formats}"
+            msg = f"Invalid file format '{file_format}' for {input_type}. Allowed: {allowed_formats}"
             raise ValueError(msg)
 
         # Prepare file path
@@ -409,17 +784,22 @@ class SaveToFileComponent(Component):
         if not file_path.parent.exists():
             file_path.parent.mkdir(parents=True, exist_ok=True)
         file_path = self._adjust_file_path_with_format(file_path, file_format)
+        
+        print(f"[SaveFile] 📁 Target file path: {file_path}", flush=True)
+        print(f"[SaveFile] 📁 File exists: {file_path.exists()}", flush=True)
 
         # Save the input to file based on type
-        if self._get_input_type() == "DataFrame":
+        if input_type == "DataFrame":
             confirmation = self._save_dataframe(self.input, file_path, file_format)
-        elif self._get_input_type() == "Data":
+        elif input_type == "Data":
             confirmation = self._save_data(self.input, file_path, file_format)
-        elif self._get_input_type() == "Message":
+        elif input_type == "Message":
             confirmation = await self._save_message(self.input, file_path, file_format)
         else:
-            msg = f"Unsupported input type: {self._get_input_type()}"
+            msg = f"Unsupported input type: {input_type}"
             raise ValueError(msg)
+        
+        print(f"[SaveFile] ✅ Save result: {confirmation}", flush=True)
 
         # Upload the saved file
         await self._upload_file(file_path)
