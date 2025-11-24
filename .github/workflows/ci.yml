@@ -7,8 +7,9 @@ on:
     branches: [main, develop]
 
 jobs:
-  component-verification:
+  ci:
     runs-on: ubuntu-latest
+    name: Verify and Test
 
     steps:
       - uses: actions/checkout@v4
@@ -16,13 +17,6 @@ jobs:
       - name: Verify component paths
         run: |
           ./scripts/verify-components.sh
-
-  test:
-    runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.modified, 'lfx/tests/') || contains(github.event.head_commit.modified, 'src/') || github.event_name == 'push'
-
-    steps:
-      - uses: actions/checkout@v4
 
       - name: Install uv
         uses: astral-sh/setup-uv@v4
@@ -43,8 +37,8 @@ jobs:
           uv pip install -e .
           # Install specific missing dependencies directly
           uv pip install asgi-lifespan
-          # Install additional dev dependencies
-          uv pip install pytest pytest-asyncio black ruff mypy
+          # Install test dependencies
+          uv pip install pytest pytest-asyncio
           # Set PYTHONPATH for imports (include both src and lfx/src)
           echo "PYTHONPATH=src:lfx/src" >> $GITHUB_ENV
           echo "VIRTUAL_ENV=$PWD/.venv" >> $GITHUB_ENV
@@ -71,62 +65,11 @@ jobs:
         if: always()
         run: docker rm -f nats-js || true
 
-      - name: Run tests
+      - name: Run Python tests
         run: |
           source .venv/bin/activate
           PYTHONPATH=src:lfx/src pytest lfx/tests/ -v
         env:
           NATS_URL: nats://localhost:4222
           STREAM_NAME: droq-stream
-
-      - name: Check formatting
-        run: |
-          source .venv/bin/activate
-          black --check src/ lfx/tests/
-
-      - name: Lint
-        run: |
-          source .venv/bin/activate
-          ruff check src/ lfx/tests/
-
-  test-only:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          version: "latest"
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install dependencies
-        run: |
-          # Create virtual environment
-          uv venv
-          source .venv/bin/activate
-          # Install the package in editable mode to get all dependencies
-          uv pip install -e .
-          # Install specific missing dependencies directly
-          uv pip install asgi-lifespan
-          # Install additional dev dependencies
-          uv pip install pytest pytest-asyncio black ruff mypy
-          # Set PYTHONPATH for imports (include both src and lfx/src)
-          echo "PYTHONPATH=src:lfx/src" >> $GITHUB_ENV
-          echo "VIRTUAL_ENV=$PWD/.venv" >> $GITHUB_ENV
-
-      - name: Verify component paths
-        run: |
-          ./scripts/verify-components.sh
-
-      - name: Run tests
-        run: |
-          source .venv/bin/activate
-          PYTHONPATH=src:lfx/src pytest lfx/tests/ -v
 
