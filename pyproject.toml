@@ -108,11 +108,17 @@ select = ["E", "F", "I", "N", "W", "UP"]
 ignore = ["N814"]  # Allow camelcase imports as constants (common for NATS library)
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["lfx/tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 asyncio_mode = "auto"
+# Exclude problematic integration tests that depend on external components
+addopts = [
+    "--ignore=lfx/tests/unit/cli/test_run_real_flows.py",
+    "--ignore=lfx/tests/unit/cli/test_run_starter_projects.py",
+    "--ignore=lfx/tests/unit/cli/test_run_starter_projects_backward_compatibility.py",
+]
 
 [tool.mypy]
 python_version = "3.11"
