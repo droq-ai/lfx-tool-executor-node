@@ -7,42 +7,34 @@ on:
     branches: [main, develop]
 
 jobs:
-  ci:
+  test:
     runs-on: ubuntu-latest
-    name: Verify and Test
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Verify component paths
-        run: |
-          ./scripts/verify-components.sh
-
+      
       - name: Install uv
         uses: astral-sh/setup-uv@v4
         with:
           version: "latest"
-
+      
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-
+      
       - name: Install dependencies
         run: |
           # Create virtual environment
           uv venv
           source .venv/bin/activate
-          # Install the package in editable mode to get all dependencies
-          uv pip install -e .
-          # Install specific missing dependencies directly
-          uv pip install asgi-lifespan
-          # Install test and dev dependencies
+          # Install dependencies without editable package (workaround for hatchling issue)
+          uv pip install nats-py aiohttp
           uv pip install pytest pytest-asyncio black ruff mypy
-          # Set PYTHONPATH for imports (include both src and lfx/src)
-          echo "PYTHONPATH=src:lfx/src" >> $GITHUB_ENV
+          # Set PYTHONPATH for imports
+          echo "PYTHONPATH=src" >> $GITHUB_ENV
           echo "VIRTUAL_ENV=$PWD/.venv" >> $GITHUB_ENV
-
+      
       - name: Start NATS with JetStream
         run: |
           docker run -d --name nats-js \
@@ -60,33 +52,38 @@ jobs:
           done
           echo "NATS failed to start"
           exit 1
-
-      - name: Start Tool Executor Node
-        run: |
-          source .venv/bin/activate
-          PYTHONPATH=src:lfx/src python src/tool_executor/main.py 8005 &
-          # Wait for executor to be ready
-          for i in {1..30}; do
-            if curl -f http://localhost:8005/health >/dev/null 2>&1; then
-              echo "Tool Executor is ready"
-              exit 0
-            fi
-            echo "Waiting for Tool Executor... ($i/30)"
-            sleep 1
-          done
-          echo "Tool Executor failed to start"
-          exit 1
-
+      
       - name: Cleanup NATS
         if: always()
         run: docker rm -f nats-js || true
-
-      - name: Run Python tests
+      
+      - name: Run tests
         run: |
           source .venv/bin/activate
-          PYTHONPATH=src:lfx/src pytest lfx/tests/ -v
+          PYTHONPATH=src pytest tests/ -v
         env:
           NATS_URL: nats://localhost:4222
           STREAM_NAME: droq-stream
-          LANGFLOW_EXECUTOR_NODE_URL: http://localhost:8005
+      
+      - name: Check formatting
+        run: |
+          source .venv/bin/activate
+          black --check src/ tests/
+      
+      - name: Lint
+        run: |
+          source .venv/bin/activate
+          ruff check src/ tests/
+
+  docker:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build Docker image
+        run: docker build -t droq-node-template:test .
 
