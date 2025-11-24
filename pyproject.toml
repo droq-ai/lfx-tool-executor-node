@@ -1,14 +1,28 @@
 [project]
 name = "lfx-tool-executor-node"
-version = "0.1.0"
-description = "Executor node responsible for running Langflow tools"
+version = "1.0.0"
+description = "LFX Tool Executor Node - A dedicated executor node for running Langflow tools inside the Droq distributed runtime with 200+ AI/ML components"
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "Apache-2.0"}
 authors = [
-    {name = "Droq Team", email = "team@droq.ai"}
+    {name = "DroqAI", email = "support@droq.ai"}
 ]
-keywords = ["droq", "langflow", "tool-executor", "workflow"]
+maintainers = [
+    {name = "DroqAI", email = "support@droq.ai"}
+]
+keywords = ["droq", "droqflow", "langflow", "tool-executor", "workflow", "ai", "llm", "vector-database"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 
 dependencies = [
     "fastapi>=0.115.0,<1.0.0",
@@ -53,10 +67,18 @@ dependencies = [
 dev = [
     "pytest>=7.0.0",
     "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
     "black>=23.0.0",
     "ruff>=0.1.0",
     "mypy>=1.0.0",
+    "types-requests>=2.31.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/droq-ai/lfx-tool-executor-node"
+Repository = "https://github.com/droq-ai/lfx-tool-executor-node"
+Documentation = "https://github.com/droq-ai/lfx-tool-executor-node#readme"
+"Bug Tracker" = "https://github.com/droq-ai/lfx-tool-executor-node/issues"
 
 [project.scripts]
 lfx-tool-executor-node = "tool_executor.main:main"
