@@ -19,7 +19,7 @@ WORKDIR /app
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 # Copy dependency files and source code
-COPY pyproject.toml README.md* ./
+COPY pyproject.toml README.md ./
 COPY uv.lock* ./
 COPY src/ ./src/
 COPY lfx /app/lfx
