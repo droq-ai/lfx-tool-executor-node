@@ -5,7 +5,6 @@
 
 # Documentation
 docs/
-*.md
 
 # Tests
 tests/

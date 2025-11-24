@@ -26,11 +26,7 @@ COPY lfx /app/lfx
 COPY components.json /app/components.json
 
 # Install project dependencies
-RUN if [ -f uv.lock ]; then \
-        uv pip sync --system uv.lock; \
-    else \
-        uv pip install --system --no-cache -e .; \
-    fi
+RUN uv pip install --system --no-cache -e .
 
 # Create non-root user for security
 RUN useradd -m -u 1000 nodeuser && chown -R nodeuser:nodeuser /app
