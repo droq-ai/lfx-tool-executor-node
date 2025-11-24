@@ -27,6 +27,8 @@ jobs:
         run: |
           # Install dependencies using uv
           uv sync --dev
+          # Ensure asgi-lifespan is available for streaming tests
+          uv pip install asgi-lifespan
           # Set PYTHONPATH for imports
           echo "PYTHONPATH=lfx/src:src" >> $GITHUB_ENV
       
