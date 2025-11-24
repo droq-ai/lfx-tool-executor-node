@@ -41,8 +41,8 @@ jobs:
           source .venv/bin/activate
           # Install the package in editable mode to get all dependencies
           uv pip install -e .
-          # Install lfx dev dependencies (including asgi-lifespan)
-          cd lfx && uv pip install -e ".[dev]" && cd ..
+          # Install specific missing dependencies directly
+          uv pip install asgi-lifespan
           # Install additional dev dependencies
           uv pip install pytest pytest-asyncio black ruff mypy
           # Set PYTHONPATH for imports (include both src and lfx/src)
@@ -113,8 +113,8 @@ jobs:
           source .venv/bin/activate
           # Install the package in editable mode to get all dependencies
           uv pip install -e .
-          # Install lfx dev dependencies (including asgi-lifespan)
-          cd lfx && uv pip install -e ".[dev]" && cd ..
+          # Install specific missing dependencies directly
+          uv pip install asgi-lifespan
           # Install additional dev dependencies
           uv pip install pytest pytest-asyncio black ruff mypy
           # Set PYTHONPATH for imports (include both src and lfx/src)
