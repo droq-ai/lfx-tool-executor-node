@@ -53,7 +53,22 @@ jobs:
       - name: Cleanup NATS
         if: always()
         run: docker rm -f nats-js || true
-      
+
+      - name: Start executor node
+        run: |
+          PYTHONPATH=lfx/src:src uv run lfx-tool-executor-node 8000 &
+          # Wait for executor node to be ready
+          for i in {1..30}; do
+            if timeout 1 bash -c "cat < /dev/null > /dev/tcp/localhost/8000" 2>/dev/null; then
+              echo "Executor node is ready"
+              exit 0
+            fi
+            echo "Waiting for executor node... ($i/30)"
+            sleep 1
+          done
+          echo "Executor node failed to start"
+          exit 1
+
       - name: Run tests
         run: |
           PYTHONPATH=lfx/src:src uv run pytest lfx/tests/ -v
