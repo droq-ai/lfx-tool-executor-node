@@ -19,10 +19,13 @@ class TestImportUtils:
     """Test the import_mod utility function."""
 
     def test_import_mod_with_module_name(self):
-        """Test importing specific attribute from a module with missing dependencies."""
-        # Test importing a class that has missing dependencies - should raise ModuleNotFoundError
-        with pytest.raises(ModuleNotFoundError, match="No module named"):
-            import_mod("OpenAIModelComponent", "openai_chat_model", "lfx.components.openai")
+        """Test importing specific attribute from a module with available dependencies."""
+        # Test importing a class - should succeed since dependencies are available
+        result = import_mod("OpenAIModelComponent", "openai_chat_model", "lfx.components.openai")
+        assert result is not None
+        # Should return the OpenAIModelComponent class
+        assert hasattr(result, "__name__")
+        assert result.__name__ == "OpenAIModelComponent"
 
     def test_import_mod_without_module_name(self):
         """Test importing entire module when module_name is None."""
@@ -37,9 +40,9 @@ class TestImportUtils:
             import_mod("NonExistentComponent", "nonexistent_module", "lfx.components.openai")
 
     def test_import_mod_attribute_not_found(self):
-        """Test error handling when module has missing dependencies."""
-        # The openai_chat_model module can't be imported due to missing dependencies
-        with pytest.raises(ModuleNotFoundError, match="No module named"):
+        """Test error handling when attribute doesn't exist in module."""
+        # Test importing a non-existent attribute from a valid module
+        with pytest.raises(AttributeError):
             import_mod("NonExistentComponent", "openai_chat_model", "lfx.components.openai")
 
 
@@ -94,13 +97,15 @@ class TestComponentDynamicImports:
         assert "OpenAIModelComponent" in openai_components.__all__
         assert "OpenAIEmbeddingsComponent" in openai_components.__all__
 
-        # Access component - this should raise AttributeError due to missing langchain-openai
-        with pytest.raises(AttributeError, match="Could not import 'OpenAIModelComponent'"):
-            _ = openai_components.OpenAIModelComponent
+        # Access component - this should succeed since dependencies are available
+        model_component = openai_components.OpenAIModelComponent
+        assert model_component is not None
+        assert hasattr(model_component, "__name__")
+        assert model_component.__name__ == "OpenAIModelComponent"
 
-        # Test that the error is properly cached - second access should also fail
-        with pytest.raises(AttributeError, match="Could not import 'OpenAIModelComponent'"):
-            _ = openai_components.OpenAIModelComponent
+        # Test that the component is properly cached - second access should return same object
+        model_component_2 = openai_components.OpenAIModelComponent
+        assert model_component_2 is model_component
 
     def test_category_module_dir(self):
         """Test __dir__ functionality for category modules."""
@@ -215,9 +220,11 @@ class TestComponentDynamicImports:
         assert "SearchComponent" in searchapi_components.__all__
         assert "SearchComponent" in searchapi_components._dynamic_imports
 
-        # Accessing should trigger dynamic import - may fail due to missing dependencies
-        with pytest.raises(AttributeError, match=r"Could not import.*SearchComponent"):
-            _ = searchapi_components.SearchComponent
+        # Accessing should trigger dynamic import - should succeed with dependencies
+        search_component = searchapi_components.SearchComponent
+        assert search_component is not None
+        assert hasattr(search_component, "__name__")
+        assert search_component.__name__ == "SearchComponent"
 
 
 class TestPerformanceCharacteristics:
@@ -227,21 +234,24 @@ class TestPerformanceCharacteristics:
         """Test that components can be accessed and cached properly."""
         from lfx.components import chroma as chromamodules
 
-        # Test that we can access a component
-        with pytest.raises(AttributeError, match=r"Could not import.*ChromaVectorStoreComponent"):
-            chromamodules.ChromaVectorStoreComponent  # noqa: B018
+        # Test that we can access a component - should succeed with dependencies
+        chroma_component = chromamodules.ChromaVectorStoreComponent
+        assert chroma_component is not None
+        assert hasattr(chroma_component, "__name__")
+        assert chroma_component.__name__ == "ChromaVectorStoreComponent"
 
     def test_caching_behavior(self):
         """Test that components are cached after first access."""
         from lfx.components import models
 
-        # EmbeddingModelComponent should raise AttributeError due to missing dependencies
-        with pytest.raises(AttributeError, match=r"Could not import.*EmbeddingModelComponent"):
-            _ = models.EmbeddingModelComponent
+        # EmbeddingModelComponent should succeed with dependencies
+        embedding_component = models.EmbeddingModelComponent
+        assert embedding_component is not None
+        assert hasattr(embedding_component, "__name__")
 
-        # Test that error is cached - subsequent access should also fail
-        with pytest.raises(AttributeError, match=r"Could not import.*EmbeddingModelComponent"):
-            _ = models.EmbeddingModelComponent
+        # Test that component is cached - subsequent access should return same object
+        embedding_component_2 = models.EmbeddingModelComponent
+        assert embedding_component_2 is embedding_component
 
     def test_memory_usage_multiple_accesses(self):
         """Test memory behavior with multiple component accesses."""
@@ -282,11 +292,13 @@ class TestSpecialCases:
         """Test platform-specific component handling (like NVIDIA Windows components)."""
         import lfx.components.nvidia as nvidia_components
 
-        # NVIDIAModelComponent should raise AttributeError due to missing langchain-nvidia-ai-endpoints dependency
-        with pytest.raises(AttributeError, match=r"Could not import.*NVIDIAModelComponent"):
-            _ = nvidia_components.NVIDIAModelComponent
+        # NVIDIAModelComponent should succeed with dependencies
+        nvidia_component = nvidia_components.NVIDIAModelComponent
+        assert nvidia_component is not None
+        assert hasattr(nvidia_component, "__name__")
+        assert nvidia_component.__name__ == "NVIDIAModelComponent"
 
-        # Test that __all__ still works correctly despite import failures
+        # Test that __all__ works correctly
         assert "NVIDIAModelComponent" in nvidia_components.__all__
 
     def test_import_structure_integrity(self):
@@ -294,11 +306,12 @@ class TestSpecialCases:
         from lfx import components
 
         # Test that we can access nested components through the hierarchy
-        # OpenAI component requires langchain_openai which isn't installed
-        with pytest.raises(AttributeError, match=r"Could not import.*OpenAIModelComponent"):
-            _ = components.openai.OpenAIModelComponent
+        # OpenAI component should succeed with dependencies
+        openai_component = components.openai.OpenAIModelComponent
+        assert openai_component is not None
+        assert hasattr(openai_component, "__name__")
 
-        # APIRequestComponent should work now that validators is installed
+        # APIRequestComponent should work with dependencies
         api_component = components.data.APIRequestComponent
         assert api_component is not None
 
