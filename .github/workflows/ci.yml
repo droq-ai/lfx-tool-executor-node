@@ -37,8 +37,8 @@ jobs:
           uv pip install -e .
           # Install specific missing dependencies directly
           uv pip install asgi-lifespan
-          # Install test dependencies
-          uv pip install pytest pytest-asyncio
+          # Install test and dev dependencies
+          uv pip install pytest pytest-asyncio black ruff mypy
           # Set PYTHONPATH for imports (include both src and lfx/src)
           echo "PYTHONPATH=src:lfx/src" >> $GITHUB_ENV
           echo "VIRTUAL_ENV=$PWD/.venv" >> $GITHUB_ENV
@@ -61,9 +61,35 @@ jobs:
           echo "NATS failed to start"
           exit 1
 
+      - name: Start Tool Executor Node
+        run: |
+          source .venv/bin/activate
+          PYTHONPATH=src:lfx/src python src/tool_executor/main.py 8005 &
+          # Wait for executor to be ready
+          for i in {1..30}; do
+            if curl -f http://localhost:8005/health >/dev/null 2>&1; then
+              echo "Tool Executor is ready"
+              exit 0
+            fi
+            echo "Waiting for Tool Executor... ($i/30)"
+            sleep 1
+          done
+          echo "Tool Executor failed to start"
+          exit 1
+
       - name: Cleanup NATS
         if: always()
         run: docker rm -f nats-js || true
+
+      - name: Check formatting
+        run: |
+          source .venv/bin/activate
+          black --check src/ lfx/
+
+      - name: Lint
+        run: |
+          source .venv/bin/activate
+          ruff check src/ lfx/
 
       - name: Run Python tests
         run: |
@@ -72,4 +98,5 @@ jobs:
         env:
           NATS_URL: nats://localhost:4222
           STREAM_NAME: droq-stream
+          LANGFLOW_EXECUTOR_NODE_URL: http://localhost:8005
 
