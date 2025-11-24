@@ -39,11 +39,12 @@ jobs:
           # Create virtual environment
           uv venv
           source .venv/bin/activate
-          # Install dependencies without editable package (workaround for hatchling issue)
-          uv pip install nats-py aiohttp
+          # Install the package in editable mode to get all dependencies
+          uv pip install -e .
+          # Install additional dev dependencies
           uv pip install pytest pytest-asyncio black ruff mypy
-          # Set PYTHONPATH for imports
-          echo "PYTHONPATH=src" >> $GITHUB_ENV
+          # Set PYTHONPATH for imports (include both src and lfx/src)
+          echo "PYTHONPATH=src:lfx/src" >> $GITHUB_ENV
           echo "VIRTUAL_ENV=$PWD/.venv" >> $GITHUB_ENV
 
       - name: Start NATS with JetStream
@@ -71,7 +72,7 @@ jobs:
       - name: Run tests
         run: |
           source .venv/bin/activate
-          PYTHONPATH=src pytest lfx/tests/ -v
+          PYTHONPATH=src:lfx/src pytest lfx/tests/ -v
         env:
           NATS_URL: nats://localhost:4222
           STREAM_NAME: droq-stream
@@ -108,11 +109,12 @@ jobs:
           # Create virtual environment
           uv venv
           source .venv/bin/activate
-          # Install dependencies without editable package (workaround for hatchling issue)
-          uv pip install nats-py aiohttp
+          # Install the package in editable mode to get all dependencies
+          uv pip install -e .
+          # Install additional dev dependencies
           uv pip install pytest pytest-asyncio black ruff mypy
-          # Set PYTHONPATH for imports
-          echo "PYTHONPATH=src" >> $GITHUB_ENV
+          # Set PYTHONPATH for imports (include both src and lfx/src)
+          echo "PYTHONPATH=src:lfx/src" >> $GITHUB_ENV
           echo "VIRTUAL_ENV=$PWD/.venv" >> $GITHUB_ENV
 
       - name: Verify component paths
@@ -122,5 +124,5 @@ jobs:
       - name: Run tests
         run: |
           source .venv/bin/activate
-          PYTHONPATH=src pytest lfx/tests/ -v
+          PYTHONPATH=src:lfx/src pytest lfx/tests/ -v
 
