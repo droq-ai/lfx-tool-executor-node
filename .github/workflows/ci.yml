@@ -71,7 +71,7 @@ jobs:
 
       - name: Run tests
         run: |
-          PYTHONPATH=lfx/src:src uv run pytest lfx/tests/ -v
+          PYTHONPATH=lfx/src:src uv run pytest -v
         env:
           NATS_URL: nats://localhost:4222
           STREAM_NAME: droq-stream
