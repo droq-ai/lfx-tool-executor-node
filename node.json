@@ -3,7 +3,7 @@
   "name": "Langflow Executor Node",
   "description": "Langflow Component Executor Node - Executes Langflow components in isolated environments with comprehensive AI model integrations, data processing capabilities, and workflow orchestration",
   "version": "1.0.0",
-  "api_url": "http://localhost:8000",
+  "api_url": "http://localhost:8005",
   "ip_address": "0.0.0.0",
   "docker_image": "droq/langflow-executor:v1",
   "deployment_location": "local",
