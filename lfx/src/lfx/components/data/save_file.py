@@ -427,8 +427,12 @@ class SaveToFileComponent(Component):
         )
         
         if is_text_empty and is_data_empty:
-            print(f"[SaveFile] ⚠️ SKIP: Data content is empty, skipping write. data.data={repr(data.data)}, text={repr(text_content)}", flush=True)
+            print(
+                f"[SaveFile] ⚠️ SKIP: Data content is empty, skipping write. data.data={repr(data.data)}, text={repr(text_content)}",
+                flush=True,
+            )
             logger.info(f"[SaveFile] Skipping write to '{path}' - content is empty")
+            setattr(self, "_skipped_last_write", True)
             return f"Skipped writing empty content to '{path}'"
         
         file_exists = path.exists()
@@ -609,8 +613,12 @@ class SaveToFileComponent(Component):
         # This prevents writing empty files which indicates a problem in the workflow
         print(f"[SaveFile] 💾 Final content: type={type(content).__name__}, length={len(content) if isinstance(content, str) else 'N/A'}, value={repr(content)[:200]}", flush=True)
         if not content or (isinstance(content, str) and content.strip() == ""):
-            print(f"[SaveFile] ⚠️ SKIP: Content is empty, skipping write. message.text={repr(message.text)}, content={repr(content)}", flush=True)
+            print(
+                f"[SaveFile] ⚠️ SKIP: Content is empty, skipping write. message.text={repr(message.text)}, content={repr(content)}",
+                flush=True,
+            )
             logger.info(f"[SaveFile] Skipping write to '{path}' - content is empty")
+            setattr(self, "_skipped_last_write", True)
             return f"Skipped writing empty content to '{path}'"
 
         if fmt == "txt":
@@ -788,6 +796,9 @@ class SaveToFileComponent(Component):
         print(f"[SaveFile] 📁 Target file path: {file_path}", flush=True)
         print(f"[SaveFile] 📁 File exists: {file_path.exists()}", flush=True)
 
+        # Track whether we skipped writing due to empty content
+        setattr(self, "_skipped_last_write", False)
+
         # Save the input to file based on type
         if input_type == "DataFrame":
             confirmation = self._save_dataframe(self.input, file_path, file_format)
@@ -801,8 +812,11 @@ class SaveToFileComponent(Component):
         
         print(f"[SaveFile] ✅ Save result: {confirmation}", flush=True)
 
-        # Upload the saved file
-        await self._upload_file(file_path)
+        # Upload the saved file only if we actually wrote content
+        if not getattr(self, "_skipped_last_write", False):
+            await self._upload_file(file_path)
+        else:
+            print("[SaveFile] ⏭️ Upload skipped because no content was written.", flush=True)
 
         # Return the final file path and confirmation message
         final_path = Path.cwd() / file_path if not file_path.is_absolute() else file_path

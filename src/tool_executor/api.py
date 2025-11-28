@@ -757,13 +757,6 @@ async def execute_component(request: ExecutionRequest) -> ExecutionResponse:
             deserialized_inputs["tools"] = sanitized_tools
 
         _summarize_parameters("parameters/final", component_params)
-
-        # DEBUG: Log api_key before instantiation for AgentQL
-        if request.component_state.component_class == "AgentQL" and "api_key" in component_params:
-            api_key_val = component_params.get("api_key")
-            print(f"[EXECUTOR] 🎯 AgentQL api_key in component_params BEFORE instantiation: {repr(api_key_val)}", flush=True)
-            logger.info(f"[EXECUTOR] 🎯 AgentQL api_key in component_params: {repr(api_key_val)}")
-
         component = component_class(**component_params)
         
         # DEBUG: Verify api_key is set on component instance
