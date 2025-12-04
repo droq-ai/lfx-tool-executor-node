@@ -1,6 +1,6 @@
 # LFX Tool Executor Node
 
-**LFX Tool Executor Node** provides a unified interface for running Langflow tools inside the Droq distributed runtime — simplifying workflow automation and tool execution with 200+ AI/ML components.
+**LFX Tool Executor Node** provides a unified interface for running LangFlow tools inside the Droq distributed runtime
 
 ## 🚀 Installation
 
