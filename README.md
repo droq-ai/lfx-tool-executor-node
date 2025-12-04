@@ -59,7 +59,6 @@ Environment variables:
 | `LOG_LEVEL` | `INFO` | Python logging level |
 | `NODE_ID` | `lfx-tool-executor-node` | Node identifier |
 
-### Component Categories
 
 ## 🔧 Development
 
