@@ -61,16 +61,6 @@ Environment variables:
 
 ### Component Categories
 
-The executor supports 200+ components across these categories:
-
-- **AI/ML Providers**: OpenAI, Anthropic, Google, Azure, AWS, Cohere, Mistral, Groq
-- **Vector Databases**: FAISS, Chroma, Pinecone, Qdrant, Weaviate
-- **Search APIs**: Google Search, Bing, DuckDuckGo, SerpAPI, ArXiv, Wikipedia
-- **Data Processing**: CSV, JSON, file operations, data transformation
-- **Document Processing**: Unstructured, Docling, Firecrawl
-- **Tool Integrations**: Composio (35+ tools), Git, Calculator utilities
-- **Agent Frameworks**: Custom agents, MCP, memory management
-
 ## 🔧 Development
 
 ```bash
