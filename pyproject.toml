@@ -82,15 +82,15 @@ Documentation = "https://github.com/droq-ai/lfx-tool-executor-node#readme"
 "Bug Tracker" = "https://github.com/droq-ai/lfx-tool-executor-node/issues"
 
 [project.scripts]
-lfx-tool-executor-node = "tool_executor.main:main"
+lfx-tool-executor-node = "node.main:main"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/tool_executor"]
-include = ["src/tool_executor/**/*", "lfx/**/*", "components.json"]
+packages = ["src/node"]
+include = ["src/node/**/*", "lfx/**/*", "node.json"]
 
 [tool.uv.sources]
 lfx = { path = "lfx" }
