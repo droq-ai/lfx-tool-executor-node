@@ -1,49 +1,88 @@
-# LFx Tool Executor Node
+# LFX Tool Executor Node
 
-A dedicated executor node for running Langflow tools inside the Droq distributed runtime.  
-It exposes a lightweight FastAPI surface and will eventually host tool-specific logic (AgentQL, scraping helpers, etc.).
+**LFX Tool Executor Node** provides a unified interface for running LangFlow tools inside the Droq distributed runtime
 
-## Quick start
+## 🚀 Installation
+
+### Using UV (Recommended)
 
 ```bash
-cd nodes/lfx-tool-executor-node
+# Install UV
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Clone and setup
+git clone https://github.com/droq-ai/lfx-tool-executor-node.git
+cd lfx-tool-executor-node
 uv sync
 
-# Run locally (defaults to port 8005)
-./start-local.sh
-
-# or specify a port
-./start-local.sh 8015
+# Verify installation
+uv run lfx-tool-executor-node --help
 ```
 
-The server exposes:
-
-- `GET /health` – readiness probe
-- `POST /api/v1/tools/run` – placeholder endpoint that will dispatch tool executions
-
-## Configuration
-
-Environment variables:
-
-| Variable | Default | Description |
-| --- | --- | --- |
-| `HOST` | `0.0.0.0` | Bind address |
-| `PORT` | `8005` | HTTP port when no CLI arg is supplied |
-| `LOG_LEVEL` | `INFO` | Python logging level |
-
-Additional secrets (API keys, service tokens) will be mounted per deployment as tools are added.
-
-## Docker
+### Using Docker
 
 ```bash
 docker build -t lfx-tool-executor-node:latest .
 docker run --rm -p 8005:8005 lfx-tool-executor-node:latest
 ```
 
-## Registering the node
+## 🧩 Usage
 
-After deploying, create/update the corresponding asset in `droq-node-registry` so workflows can discover this node and route tool components to it.
+### Running the Node
 
-## License
+```bash
+# Run locally (defaults to port 8005)
+./start-local.sh
 
-Apache License 2.0
+# or specify a port
+./start-local.sh 8005
+
+# or use uv directly
+uv run lfx-tool-executor-node --port 8005
+```
+
+### API Endpoints
+
+The server exposes:
+
+- `GET /health` – readiness probe
+- `POST /api/v1/execute` – execute specific tools
+
+## ⚙️ Configuration
+
+Environment variables:
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `HOST` | `0.0.0.0` | Bind address |
+| `PORT` | `8005` | HTTP port |
+| `LOG_LEVEL` | `INFO` | Python logging level |
+| `NODE_ID` | `lfx-tool-executor-node` | Node identifier |
+
+
+## 🔧 Development
+
+```bash
+# Install development dependencies
+uv sync --group dev
+
+# Run tests
+uv run pytest
+
+# Format code
+uv run black src/ tests/
+uv run ruff check src/ tests/
+uv run ruff format src/ tests/
+
+# Type checking
+uv run mypy src/
+```
+
+## 📄 License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+## 🔗 Related Projects
+
+- [Droq Node Registry](https://github.com/droq-ai/droq-node-registry) - Node discovery and registration
+- [Langflow](https://github.com/langflow-ai/langflow) - Visual AI workflow builder

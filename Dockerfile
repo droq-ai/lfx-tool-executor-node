@@ -18,27 +18,22 @@ WORKDIR /app
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-# Copy dependency files
-COPY pyproject.toml uv.lock* ./
-
-# Install project dependencies
-RUN if [ -f uv.lock ]; then \
-        uv pip sync --system uv.lock; \
-    else \
-        uv pip install --system --no-cache -e .; \
-    fi
-
-# Copy source code and assets
+# Copy dependency files and source code
+COPY pyproject.toml README.md ./
+COPY uv.lock* ./
 COPY src/ ./src/
 COPY lfx /app/lfx
-COPY components.json /app/components.json
+COPY node.json /app/node.json
+
+# Install project dependencies
+RUN uv pip install --system --no-cache -e .
 
 # Create non-root user for security
 RUN useradd -m -u 1000 nodeuser && chown -R nodeuser:nodeuser /app
 USER nodeuser
 
 # Set environment variables
-ENV PYTHONPATH=/app
+ENV PYTHONPATH=/app/lfx/src:/app/src
 ENV PYTHONUNBUFFERED=1
 
 # Optional: Health check

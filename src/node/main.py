@@ -8,7 +8,7 @@ import sys
 
 import uvicorn
 
-from tool_executor.api import app
+from node.api import app
 
 logger = logging.getLogger(__name__)
 

@@ -119,9 +119,11 @@ class TestImportAttr:
         module_result = import_mod("openai", "__module__", "lfx.components")
         assert hasattr(module_result, "__name__")
 
-        # Test class import - this should fail due to missing langchain-openai dependency
-        with pytest.raises((ImportError, ModuleNotFoundError)):
-            import_mod("OpenAIModelComponent", "openai_chat_model", "lfx.components.openai")
+        # Test class import - this should succeed with dependencies
+        class_result = import_mod("OpenAIModelComponent", "openai_chat_model", "lfx.components.openai")
+        assert class_result is not None
+        assert hasattr(class_result, "__name__")
+        assert class_result.__name__ == "OpenAIModelComponent"
 
     def test_caching_independence(self):
         """Test that import_mod doesn't interfere with Python's module caching."""

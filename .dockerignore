@@ -4,9 +4,7 @@
 .gitattributes
 
 # Documentation
-README.md
 docs/
-*.md
 
 # Tests
 tests/

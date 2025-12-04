@@ -1,0 +1,70 @@
+{
+  "node_id": "lfx-tool-executor-node",
+  "name": "Langflow Executor Node",
+  "description": "Langflow Component Executor Node - Executes Langflow components in isolated environments with comprehensive AI model integrations, data processing capabilities, and workflow orchestration",
+  "version": "1.0.0",
+  "api_url": "http://localhost:8005",
+  "ip_address": "0.0.0.0",
+  "docker_image": "droq/langflow-executor:v1",
+  "deployment_location": "local",
+  "status": "active",
+  "author": "Langflow",
+  "created_at": "2025-11-23T00:00:00Z",
+  "source_code_location": "https://github.com/droq-ai/lfx-runtime-executor-node",
+  "components": {
+    "GoogleSearchAPIComponent": {
+      "path": "lfx.src.lfx.components.tools.google_search_api",
+      "description": "Call Google Search API.",
+      "author": "Langflow",
+      "display_name": "Google Search API [DEPRECATED]"
+    },
+    "PythonCodeStructuredTool": {
+      "path": "lfx.src.lfx.components.tools.python_code_structured_tool",
+      "description": "structuredtool dataclass code to tool",
+      "author": "Langflow",
+      "display_name": "Python Code Structured"
+    },
+    "PythonREPLToolComponent": {
+      "path": "lfx.src.lfx.components.tools.python_repl",
+      "description": "A tool for running Python code in a REPL environment.",
+      "author": "Langflow",
+      "display_name": "Python REPL"
+    },
+    "SaveToFileComponent": {
+      "path": "lfx.src.lfx.components.data.save_file",
+      "description": "Save data to local file, AWS S3, or Google Drive in the selected format.",
+      "author": "Langflow",
+      "display_name": "Write File"
+    },
+    "SearXNGToolComponent": {
+      "path": "lfx.src.lfx.components.tools.searxng",
+      "description": "A component that searches for tools using SearXNG.",
+      "author": "Langflow",
+      "display_name": "SearXNG Search"
+    },
+    "SearchAPIComponent": {
+      "path": "lfx.src.lfx.components.tools.search_api",
+      "description": "Call the searchapi.io API with result limiting",
+      "author": "Langflow",
+      "display_name": "Engine"
+    },
+    "SerpAPIComponent": {
+      "path": "lfx.src.lfx.components.tools.serp_api",
+      "description": "Call Serp Search API with result limiting",
+      "author": "Langflow",
+      "display_name": "Serp Search API"
+    },
+    "TavilySearchToolComponent": {
+      "path": "lfx.src.lfx.components.tools.tavily_search_tool",
+      "description": "Perform a web search using the Tavily API.",
+      "author": "Langflow",
+      "display_name": "Tavily Search API"
+    },
+    "WikipediaAPIComponent": {
+      "path": "lfx.src.lfx.components.tools.wikipedia_api",
+      "description": "Call Wikipedia API.",
+      "author": "Langflow",
+      "display_name": "Wikipedia API"
+    }
+  }
+}
