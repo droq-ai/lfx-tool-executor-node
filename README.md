@@ -57,7 +57,7 @@ Environment variables:
 | `HOST` | `0.0.0.0` | Bind address |
 | `PORT` | `8005` | HTTP port |
 | `LOG_LEVEL` | `INFO` | Python logging level |
-| `NODE_ID` | `lfx-tool-executor-v1` | Node identifier |
+| `NODE_ID` | `lfx-tool-executor-node` | Node identifier |
 
 ### Component Categories
 
