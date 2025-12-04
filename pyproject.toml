@@ -9,7 +9,7 @@ authors = [
     {name = "DroqAI", email = "team@droq.ai"}
 ]
 maintainers = [
-    {name = "DroqAI", email = "support@droq.ai"}
+    {name = "DroqAI", email = "team@droq.ai"}
 ]
 keywords = ["droq", "droqflow", "langflow", "tool-executor", "workflow", "ai", "llm", "vector-database"]
 classifiers = [
