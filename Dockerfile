@@ -23,7 +23,7 @@ COPY pyproject.toml README.md ./
 COPY uv.lock* ./
 COPY src/ ./src/
 COPY lfx /app/lfx
-COPY components.json /app/components.json
+COPY node.json /app/node.json
 
 # Install project dependencies
 RUN uv pip install --system --no-cache -e .
