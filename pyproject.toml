@@ -1,6 +1,6 @@
 [project]
 name = "lfx-tool-executor-node"
-version = "1.0.0"
+version = "0.1.0"
 description = "LFX Tool Executor Node - A dedicated executor node for running Langflow tools inside the Droq distributed runtime with 200+ AI/ML components"
 readme = "README.md"
 requires-python = ">=3.11"
