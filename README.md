@@ -125,6 +125,5 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 ## 🔗 Related Projects
 
-- [DroqFlow SDK](https://github.com/droq-ai/droqflow-sdk-py) - Python SDK for Droq workflows
 - [Droq Node Registry](https://github.com/droq-ai/droq-node-registry) - Node discovery and registration
 - [Langflow](https://github.com/langflow-ai/langflow) - Visual AI workflow builder
