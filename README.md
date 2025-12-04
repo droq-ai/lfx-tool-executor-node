@@ -35,7 +35,7 @@ docker run --rm -p 8005:8005 lfx-tool-executor-node:latest
 ./start-local.sh
 
 # or specify a port
-./start-local.sh 8015
+./start-local.sh 8005
 
 # or use uv directly
 uv run lfx-tool-executor-node --port 8005
@@ -46,9 +46,7 @@ uv run lfx-tool-executor-node --port 8005
 The server exposes:
 
 - `GET /health` – readiness probe
-- `GET /api/v1/status` – node status and component information
-- `GET /api/v1/components` – list all available components
-- `POST /api/v1/tools/run` – execute specific tools
+- `POST /api/v1/execute` – execute specific tools
 
 ### Integration with DroqFlow
 
@@ -116,23 +114,6 @@ uv run ruff format src/ tests/
 # Type checking
 uv run mypy src/
 ```
-
-## 📚 Documentation
-
-* [Component Reference](docs/components.md)
-* [API Reference](docs/api.md)
-* [Development Guide](docs/development.md)
-* [Deployment Guide](docs/deployment.md)
-
-## 🏗️ Architecture
-
-The LFX Tool Executor Node follows the DroqFlow architecture:
-
-- **FastAPI Surface**: Lightweight HTTP API for tool execution
-- **Component Registry**: Dynamic component discovery and loading
-- **Security Layer**: Isolated execution environments
-- **Monitoring**: Health checks, metrics, and logging
-- **Droq Integration**: Native support for Droq workflows
 
 ## 🤝 Contributing
 
