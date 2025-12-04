@@ -47,32 +47,6 @@ The server exposes:
 
 - `GET /health` – readiness probe
 - `POST /api/v1/execute` – execute specific tools
-After running the node you may find the openapi docs at `http://localhost:8005/docs`.
-### Integration with DroqFlow
-
-```python
-import droqflow
-
-workflow_content = """
-workflow:
-  name: my-lfx-workflow
-  version: "1.0.0"
-  description: A workflow using LFX tool executor
-
-  nodes:
-    - name: lfx-executor
-      type: tool-executor
-      did: did:droq:node:lfx-tool-executor-v1
-      config:
-        host: "lfx-tool-executor-node"
-        port: 8005
-        component_categories: ["models", "processing", "data"]
-"""
-
-builder = droqflow.DroqWorkflowBuilder(yaml_content=workflow_content)
-builder.load_workflow()
-builder.generate_artifacts(output_dir="artifacts")
-```
 
 ## ⚙️ Configuration
 
