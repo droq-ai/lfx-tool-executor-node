@@ -47,7 +47,7 @@ The server exposes:
 
 - `GET /health` – readiness probe
 - `POST /api/v1/execute` – execute specific tools
-
+After running the node you may find the openapi docs at `http://localhost:8005/docs`.
 ### Integration with DroqFlow
 
 ```python
