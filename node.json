@@ -5,7 +5,7 @@
   "version": "1.0.0",
   "api_url": "http://localhost:8005",
   "ip_address": "0.0.0.0",
-  "docker_image": "droqaq/lfx-tool-executor-node",
+  "docker_image": "droqai/lfx-tool-executor-node",
   "deployment_location": "local",
   "status": "active",
   "category": "Langflow",
