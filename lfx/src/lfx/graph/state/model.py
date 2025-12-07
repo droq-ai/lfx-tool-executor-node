@@ -1,10 +1,8 @@
 from collections.abc import Callable
 from typing import Any, get_type_hints
 
-from pydantic import ConfigDict, computed_field, create_model, Field
+from pydantic import ConfigDict, computed_field, create_model
 from pydantic.fields import FieldInfo
-
-from lfx.template.field.base import UNDEFINED
 
 
 def __validate_method(method: Callable) -> None:
@@ -205,10 +203,18 @@ def create_state_model(model_name: str = "State", *, validate: bool = True, **kw
     for name, value in kwargs.items():
         # Extract the return type from the method's type annotations
         if callable(value):
-            # For callables, create a field with UNDEFINED default to avoid MRO errors
-            # The actual property will be added after model creation
-            return_type = get_type_hints(value).get("return", Any)
-            fields[name] = (return_type, Field(default=UNDEFINED))
+            # Define the field with the return type
+            try:
+                __validate_method(value)
+                getter = build_output_getter(value, validate=validate)
+                setter = build_output_setter(value, validate=validate)
+                property_method = property(getter, setter)
+            except ValueError as e:
+                # If the method is not valid,assume it is already a getter
+                if ("get_output_by_method" not in str(e) and "__self__" not in str(e)) or validate:
+                    raise
+                property_method = value
+            fields[name] = computed_field(property_method)
         elif isinstance(value, FieldInfo):
             field_tuple = (value.annotation or Any, value)
             fields[name] = field_tuple
@@ -228,23 +234,4 @@ def create_state_model(model_name: str = "State", *, validate: bool = True, **kw
 
     # Create the model dynamically
     config_dict = ConfigDict(arbitrary_types_allowed=True, validate_assignment=True)
-    model = create_model(model_name, __config__=config_dict, **fields)
-
-    # Add properties to the model for callable methods
-    for name, value in kwargs.items():
-        if callable(value):
-            try:
-                __validate_method(value)
-                getter = build_output_getter(value, validate=validate)
-                setter = build_output_setter(value, validate=validate)
-                property_method = property(getter, setter)
-                # Add the property to the model class
-                setattr(model, name, property_method)
-            except ValueError as e:
-                # If the method is not valid, assume it is already a getter
-                if ("get_output_by_method" not in str(e) and "__self__" not in str(e)) or validate:
-                    raise
-                # Add the existing callable as a property
-                setattr(model, name, value)
-
-    return model
+    return create_model(model_name, __config__=config_dict, **fields)
